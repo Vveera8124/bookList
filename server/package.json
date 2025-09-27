@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon src/index.js --ignore public/",
-    "start": "pm2-runtime start server.js -i max"
+    "start": "pm2-runtime start src/index.js -i max"
   },
   "keywords": [],
   "author": "",
