@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 5000;
 
 dotenv.config();
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: "https://notionlist.netlify.app/" }));
 app.use("/api", fileRoute);
 app.use("/api", bookRoute);
 
