@@ -1,90 +1,23 @@
 import { useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchBooks, setToast, setUploadProgress } from "../slice/bookSlice";
+import { fetchBooks, uploadCsv } from "../slice/bookSlice";
 
 const CsvUploader = () => {
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
+  const { uploadStatus } = useSelector((state) => state.books);
 
-  const { uploadStatus, uploadProgress } = useSelector((state) => state.books);
-
-  const handleFile = async (e) => {
+  const handleFile = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-
-    dispatch(setUploadProgress({ status: true, progress: 0 }));
-    try {
-      const compressedStream = file
-        .stream()
-        .pipeThrough(new CompressionStream("gzip"));
-
-      const response = await new Response(compressedStream);
-      const compressedBlob = await response.blob();
-
-      console.log(`Original size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
-      console.log(
-        `Compressed size: ${(compressedBlob.size / 1024 / 1024).toFixed(2)} MB`
-      );
-
-      await uploadWithXHR(compressedBlob);
-
-      dispatch(fetchBooks());
-
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    } catch (err) {
-      console.error("Upload failed:", err);
-    } finally {
-      dispatch(setUploadProgress({ status: false, progress: 0 }));
-      dispatch(setToast());
-    }
-  };
-
-  const uploadWithXHR = (blob) => {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-
-      xhr.upload.addEventListener("progress", (e) => {
-        if (e.lengthComputable) {
-          const percentComplete = Math.round((e.loaded / e.total) * 100);
-          dispatch(
-            setUploadProgress({ status: true, progress: percentComplete })
-          );
-        }
-      });
-
-      xhr.addEventListener("load", () => {
-        if (xhr.status === 200) {
-          try {
-            const result = JSON.parse(xhr.responseText);
-            // console.log("Server response:", result);
-            resolve(result);
-          } catch (e) {
-            resolve(xhr.responseText);
-          }
-        } else {
-          reject(new Error(`Upload Failed with status ${xhr.status}`));
-        }
-      });
-
-      xhr.addEventListener("error", () => {
-        reject(new Error(`Error occured while uploading`));
-      });
-
-      xhr.addEventListener("timeout", () => {
-        reject(new Error(`timeout error occured`));
-      });
-
-      xhr.addEventListener("abort", () => {
-        reject(new Error(`Upload was aborted`));
-      });
-
-      xhr.open("POST", `${import.meta.env.VITE_API_URL}/upload`);
-      // xhr.open("POST", "http://localhost:5000/api/upload");
-      xhr.setRequestHeader("Content-Type", "application/gzip");
-      xhr.setRequestHeader("Content-Encoding", "gzip");
-      xhr.timeout = 300000;
-      xhr.send(blob);
-    });
+    if (file)
+      dispatch(uploadCsv({ file }))
+        .unwrap()
+        .then(() => {
+          dispatch(fetchBooks());
+        })
+        .catch((err) => {
+          console.error("Upload failed", err);
+        });
   };
 
   const triggerFileSelect = () => {
@@ -99,12 +32,11 @@ const CsvUploader = () => {
         ref={fileInputRef}
         onChange={handleFile}
         className="hidden"
-        disabled={uploadStatus}
       />
-      <div className="flex flex-col items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-4">
         <button
           onClick={triggerFileSelect}
-          className="py-2 px-4 bg-blue-300 text-white rounded hover:bg-blue-500 transition-colors flex justify-center items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="py-2 px-4 bg-blue-300 text-white rounded hover:bg-blue-500 transition-colors flex justify-center items-center space-x-1"
           disabled={uploadStatus}
         >
           {uploadStatus ? (
@@ -126,7 +58,7 @@ const CsvUploader = () => {
                   fill="currentColor"
                 />
               </svg>
-              Uploading... {uploadProgress}%
+              Loading...
             </>
           ) : (
             <>
@@ -142,7 +74,7 @@ const CsvUploader = () => {
                   strokeWidth={2}
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                 />
-              </svg>
+              </svg>{" "}
               <span>Choose CSV File</span>
             </>
           )}

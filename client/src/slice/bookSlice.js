@@ -67,7 +67,6 @@ const booksSlice = createSlice({
     sort: { field: "title", order: "asc" },
     toast: null,
     uploadStatus: false,
-    uploadProgress: 0,
   },
   reducers: {
     setPagination(state, action) {
@@ -82,15 +81,8 @@ const booksSlice = createSlice({
     clearToast(state) {
       state.toast = null;
     },
-    setUploadProgress: (state, { payload: { status, progress } }) => {
-      if (state.uploadProgress !== status) state.uploadStatus = status;
-      state.uploadProgress = progress;
-    },
-    setToast(state) {
-      state.toast = {
-        type: "success",
-        message: "Upload completed",
-      };
+    setUploadProgress: (state) => {
+      state.uploadStatus = true;
     },
   },
   extraReducers: (builder) => {
@@ -120,20 +112,21 @@ const booksSlice = createSlice({
       })
       .addCase(updateBook.rejected, (state, action) => {
         state.toast = { type: "error", message: action.payload };
+      })
+      .addCase(uploadCsv.pending, (state) => {
+        state.uploadStatus = true;
+      })
+
+      .addCase(uploadCsv.fulfilled, (state, action) => {
+        state.toast = {
+          type: "success",
+          message: action.payload.message || "Upload completed",
+        };
+        state.uploadStatus = false;
+      })
+      .addCase(uploadCsv.rejected, (state) => {
+        state.toast = { type: "error", message: "Upload failed" };
       });
-    // .addCase(uploadCsv.pending, (state) => {
-    //   state.uploadStatus = true;
-    // })
-    // .addCase(uploadCsv.fulfilled, (state, action) => {
-    //   state.toast = {
-    //     type: "success",
-    //     message: action.payload.message || "Upload completed",
-    //   };
-    //   state.uploadStatus = false;
-    // })
-    // .addCase(uploadCsv.rejected, (state) => {
-    //   state.toast = { type: "error", message: "Upload failed" };
-    // });
   },
 });
 
@@ -143,6 +136,5 @@ export const {
   setSort,
   clearToast,
   setUploadProgress,
-  setToast,
 } = booksSlice.actions;
 export default booksSlice.reducer;
