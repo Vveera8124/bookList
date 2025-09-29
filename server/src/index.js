@@ -12,6 +12,7 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   "https://notionlist.netlify.app",
   "https://notionlist.netlify.app/",
+  // "http://localhost:5173",
 ];
 
 dotenv.config();

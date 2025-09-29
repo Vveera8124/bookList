@@ -3,6 +3,7 @@ import BookService from "../services/book.service.js";
 
 class StreamStorage {
   _handleFile(req, file, cb) {
+    console.log("file triggered");
     BookService.processCsv(file.stream)
       .then((result) => cb(null, { size: file.size, result }))
       .catch((err) => cb(err));
