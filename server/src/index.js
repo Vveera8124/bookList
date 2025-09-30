@@ -9,15 +9,25 @@ import bookRoute from "./routes/book.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-// const allowedOrigins = [
-//   "https://notionlist.netlify.app",
-//   "https://notionlist.netlify.app/",
-//   // "http://localhost:5173",
-// ];
+const allowedOrigins = [
+  "https://notionlist.netlify.app",
+  "https://notionlist.netlify.app/",
+  // "http://localhost:5173",
+];
 
 dotenv.config();
 app.use(express.json());
-app.use(cors({ origin: "https://notionlist.netlify.app" }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS policy: Origin ${origin} not allowed`), false);
+      }
+    },
+  })
+);
 
 app.use("/api", fileRoute);
 app.use("/api", bookRoute);
