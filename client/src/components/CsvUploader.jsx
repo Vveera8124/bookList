@@ -22,9 +22,9 @@ const CsvUploader = () => {
       // const compressedBlob = await response.blob();
 
       console.log(`Original size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
-      console.log(
-        `Compressed size: ${(compressedBlob.size / 1024 / 1024).toFixed(2)} MB`
-      );
+      // console.log(
+      //   `Compressed size: ${(compressedStream / 1024 / 1024).toFixed(2)} MB`
+      // );
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
         method: "POST",

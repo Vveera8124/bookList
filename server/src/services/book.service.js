@@ -57,7 +57,11 @@ class BookService {
   }
 
   static async insertBatch(batch) {
-    await BookModel.insertMany(batch, { ordered: false });
+    await BookModel.insertMany(batch, {
+      ordered: false,
+      lean: true,
+      rawResult: true,
+    });
   }
 }
 
