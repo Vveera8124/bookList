@@ -2,6 +2,7 @@ import csvParser from "csv-parser";
 import BookModel from "../models/book.model.js";
 import bookSchema from "../controllers/schemaValidate.js";
 import pkg from "lodash";
+import { createGunzip } from "zlib";
 const { camelCase } = pkg;
 class BookService {
   static async processCsv(stream) {
@@ -9,12 +10,12 @@ class BookService {
       const batchArray = [];
       const failedRows = [];
       let rowNumber = 0;
-
+      const decompress = createGunzip();
       const BATCH_SIZE = process.env.BATCH_SIZE;
 
-      const parser = stream.pipe(
-        csvParser({ mapHeaders: ({ header }) => camelCase(header) })
-      );
+      const parser = stream
+        .pipe(decompress)
+        .pipe(csvParser({ mapHeaders: ({ header }) => camelCase(header) }));
 
       parser.on("data", async (row) => {
         rowNumber++;
